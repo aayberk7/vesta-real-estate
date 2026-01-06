@@ -18,7 +18,7 @@ export default function Commissions() {
 
   const fetchCommissions = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/listings/agent/my-commissions", {
+      const response = await axios.get("${import.meta.env.VITE_API_URL}/listings/agent/my-commissions", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCommissions(response.data);

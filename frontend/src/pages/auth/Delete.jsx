@@ -8,7 +8,7 @@ export default function DeleteAccountModal({ isOpen, onClose }) {
 
   const handleDelete = async () => {
     try {
-      await axios.delete("http://localhost:3000/users/me", {
+      await axios.delete("${import.meta.env.VITE_API_URL}/users/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
 

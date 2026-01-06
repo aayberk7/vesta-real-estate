@@ -148,7 +148,7 @@ function FavoritesGrid({ favorites, onRemove }) {
         >
           {item.listing.image ? (
             <img
-              src={`http://localhost:3000${item.listing.image}`}
+              src={`${import.meta.env.VITE_API_URL}${item.listing.image}`}
               alt={item.listing.title}
               className="h-52 w-full object-cover"
             />

@@ -84,7 +84,7 @@ export default function Edit({ isOpen, onClose, onSuccess }) {
             <div className="relative w-24 h-24 rounded-full overflow-hidden bg-black/40 border-2 border-white/20 mb-3">
               {preview || user?.profileImage ? (
                 <img
-                  src={preview || `http://localhost:3000${user.profileImage}`}
+                  src={preview || `${import.meta.env.VITE_API_URL}${user.profileImage}`}
                   alt={user?.username}
                   className="w-full h-full object-cover"
                 />

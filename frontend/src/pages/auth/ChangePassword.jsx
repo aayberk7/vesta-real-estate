@@ -46,7 +46,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
 
     try {
       await axios.put(
-        "http://localhost:3000/users/change-password",
+        "${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/users/change-password",
         {
           oldPassword: form.oldPassword,
           newPassword: form.newPassword,

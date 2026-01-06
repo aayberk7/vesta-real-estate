@@ -20,7 +20,7 @@ export default function Listings() {
 
   const fetchListings = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/listings");
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/listings`);
       setListings(response.data);
       setFilteredListings(response.data);
       setLoading(false);
@@ -143,7 +143,7 @@ function ListingsGrid({ listings, onDetailClick }) {
         >
           {item.image ? (
             <img
-              src={`http://localhost:3000${item.image}`}
+              src={`${import.meta.env.VITE_API_URL}${item.image}`}
               alt={item.title}
               className="h-52 w-full object-cover"
             />
@@ -247,7 +247,7 @@ function ListingDetailModal({ listing, onClose, user }) {
         <div className="relative h-96">
           {listing.image ? (
             <img
-              src={`http://localhost:3000${listing.image}`}
+              src={`${import.meta.env.VITE_API_URL}${listing.image}`}
               alt={listing.title}
               className="w-full h-full object-cover"
             />

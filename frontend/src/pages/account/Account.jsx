@@ -35,7 +35,7 @@ export default function MyAccount() {
   const fetchFavorites = async () => {
   try {
     const response = await axios.get(
-      "http://localhost:3000/favorites",
+      "${import.meta.env.VITE_API_URL}/favorites",
       {
         headers: { Authorization: `Bearer ${token}` },
       }
@@ -48,7 +48,7 @@ export default function MyAccount() {
 
   const fetchMyListings = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/listings/my/listings", {
+      const response = await axios.get("${import.meta.env.VITE_API_URL}/listings/my/listings", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMyListings(response.data);
@@ -122,7 +122,7 @@ export default function MyAccount() {
           <div className="w-24 h-24 rounded-full bg-black/40 flex items-center justify-center text-4xl font-bold overflow-hidden border-2 border-white/20">
             {user.profileImage ? (
               <img
-                src={`http://localhost:3000${user.profileImage}`}
+                src={`${import.meta.env.VITE_API_URL}${user.profileImage}`}
                 alt={user.username}
                 className="w-full h-full object-cover"
               />
