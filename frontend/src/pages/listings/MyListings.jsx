@@ -40,7 +40,7 @@ export default function MyListings() {
 
   const fetchMyListings = async () => {
     try {
-      const response = await axios.get("${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/listings/my/listings", {
+      const response = await axios.get("${import.meta.env.VITE_API_URL}/listings/my/listings", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMyListings(response.data);
@@ -53,7 +53,7 @@ export default function MyListings() {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get("${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/categories");
+      const response = await axios.get("${import.meta.env.VITE_API_URL}/categories");
       setCategories(response.data);
     } catch (err) {
       console.error("Kategoriler yüklenemedi:", err);
@@ -62,7 +62,7 @@ export default function MyListings() {
 
   const fetchDistricts = async () => {
     try {
-      const response = await axios.get("${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/districts");
+      const response = await axios.get("${import.meta.env.VITE_API_URL}/districts");
       setDistricts(response.data);
     } catch (err) {
       console.error("İlçeler yüklenemedi:", err);
@@ -71,11 +71,11 @@ export default function MyListings() {
 
   const fetchAgents = async () => {
     try {
-      const response = await axios.get("${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/users/agents");
+      const response = await axios.get("${import.meta.env.VITE_API_URL}/users/agents");
       setAgents(response.data);
 
       // Her emlakçının kaç ilanı olduğunu hesapla
-      const allListings = await axios.get("${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/listings");
+      const allListings = await axios.get("${import.meta.env.VITE_API_URL}/listings");
       const counts = {};
       allListings.data.forEach((listing) => {
         if (listing.agentId) {
@@ -123,7 +123,7 @@ export default function MyListings() {
 
     try {
       if (editingListing) {
-        await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/listings/${editingListing.id}`, data, {
+        await axios.put(`${import.meta.env.VITE_API_URL}/listings/${editingListing.id}`, data, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
@@ -131,7 +131,7 @@ export default function MyListings() {
         });
         alert("✅ İlan güncellendi!");
       } else {
-        await axios.post("${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/listings", data, {
+        await axios.post("${import.meta.env.VITE_API_URL}/listings", data, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
@@ -169,7 +169,7 @@ export default function MyListings() {
     if (!confirm("Bu ilanı silmek istediğinize emin misiniz?")) return;
 
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/listings/${id}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/listings/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       alert("🗑️ İlan silindi!");
@@ -465,7 +465,7 @@ function ListingsGrid({ listings, onEdit, onDelete }) {
         >
           {item.image ? (
             <img
-              src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${item.image}`}
+              src={`${import.meta.env.VITE_API_URL}${item.image}`}
               alt={item.title}
               className="h-48 w-full object-cover"
             />

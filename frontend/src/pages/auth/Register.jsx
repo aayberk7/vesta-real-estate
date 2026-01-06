@@ -80,7 +80,9 @@ export default function Register({onSuccess}) {
     if (photo) data.append("photo", photo);
 
     try {
-      await axios.post("${import.meta.env.VITE_API_URL}/auth/register", data, {
+      // 👇 BACKTICK (`) kullan, tek tırnak değil!
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      await axios.post(`${API_URL}/auth/register`, data, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -119,8 +121,6 @@ export default function Register({onSuccess}) {
             )}
           </div>
 
-
-          
           <div>
             <input
               type="email"
@@ -179,8 +179,8 @@ export default function Register({onSuccess}) {
               }`}
             >
               <option value="">Rol Seç</option>
-              <option value="customer">Müşteri</option>
-              <option value="agent">Emlakçı</option>
+              <option value="CUSTOMER">Müşteri</option>
+              <option value="AGENT">Emlakçı</option>
             </select>
             {errors.role && (
               <p className="text-red-500 text-sm mt-1">⚠️ {errors.role}</p>

@@ -35,7 +35,7 @@ export default function Edit({ isOpen, onClose, onSuccess }) {
       if (photo) data.append("photo", photo);
 
       const response = await axios.put(
-        "http://localhost:3000/users/me",
+        "${import.meta.env.VITE_API_URL}/users/me",
         data,
         {
           headers: {
