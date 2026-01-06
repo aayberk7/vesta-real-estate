@@ -25,36 +25,36 @@ export class Listing {
   @Column()
   title: string;
 
-  @Column({ type: 'nvarchar', length: 'max' })
+  @Column('text') // PostgreSQL için 'text' kullan
   description: string;
 
-  @Column({ type: 'decimal', precision: 18, scale: 2 })
+  @Column('decimal', { precision: 10, scale: 2 }) // precision düşürüldü
   price: number;
 
-  @Column({ type: 'decimal', precision: 18, scale: 2, default: 0 })
-  commission: number; // 👈 YENİ: Komisyon (fiyatın %3'ü)
+  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  commission: number;
 
   @Column()
   address: string;
 
   @Column({
-    type: 'varchar',
-    length: 20,
+    type: 'enum',
+    enum: ListingStatus,
     default: ListingStatus.ACTIVE,
   })
   status: ListingStatus;
 
-  @Column({ type: 'nvarchar', length: 'max', nullable: true })
+  @Column('text', { nullable: true }) // text olarak değişti
   image: string | null;
 
-  @ManyToOne(() => User, { eager: true }) 
+  @ManyToOne(() => User, { eager: true })
   @JoinColumn({ name: 'ownerId' })
   owner: User;
 
   @Column()
   ownerId: number;
 
-  @ManyToOne(() => User, { eager: true, nullable: true , onDelete: 'SET NULL' })
+  @ManyToOne(() => User, { eager: true, nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'agentId' })
   agent: User | null;
 

@@ -1,18 +1,20 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { NestExpressApplication } from '@nestjs/platform-express';
-import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create(AppModule);
 
+  // CORS ayarları (Frontend'in bağlanabilmesi için)
   app.enableCors({
-    origin: 'http://localhost:5173',
+    origin: [
+      'http://localhost:5173', // Local development
+      'https://vesta-real-estate.vercel.app', // Production (Vercel URL'ini değiştir)
+    ],
     credentials: true,
   });
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
-  prefix: '/uploads',
-});
-  await app.listen(3000);
+
+  const port = process.env.PORT || 3000;
+  await app.listen(port);
+  console.log(`🚀 Backend çalışıyor: http://localhost:${port}`);
 }
 bootstrap();

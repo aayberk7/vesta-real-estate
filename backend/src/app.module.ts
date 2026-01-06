@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
 import { District } from './districts/district.entity';
 import { Category } from './categories/category.entity';
 import { User } from './users/user.entity';
 import { Listing } from './listings/listing.entity';
-import { Favorite } from './favorites/favorite.entity'; // 👈 EKLE
+import { Favorite } from './favorites/favorite.entity';
 import { DistrictsModule } from './districts/districts.module';
 import { CategoriesModule } from './categories/categories.module';
 import { UsersModule } from './users/users.module';
@@ -16,28 +17,17 @@ import { join } from 'path';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true, // .env dosyasını her yerde kullan
+    }),
     TypeOrmModule.forRoot({
-      type: 'mssql',
-      host: 'localhost',
-      port: 1433,
-      username: 'sa', 
-      password: 'Sa.123456789!',
-      database: 'vesta_db',
-      entities: [District, Category, User, Listing, Favorite], // 👈 Favorite EKLE
-      synchronize: true,
-      options: {
-        encrypt: false,
-        trustServerCertificate: true,
+      type: 'postgres', // MSSQL yerine PostgreSQL
+      url: process.env.DATABASE_URL, // Neon connection string
+      entities: [District, Category, User, Listing, Favorite],
+      synchronize: true, // Production'da false olmalı ama şimdilik true
+      ssl: {
+        rejectUnauthorized: false, // Neon için gerekli
       },
-      connectionTimeout: 30000,
-      requestTimeout: 30000,
-      extra: {
-        pool: {
-          max: 10,
-          min: 0,
-          idleTimeoutMillis: 30000
-        }
-      }
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),

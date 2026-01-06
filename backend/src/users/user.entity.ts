@@ -27,32 +27,24 @@ export class User {
   password: string;
 
   @Column({
-    type: 'varchar', 
-    length: 20, 
-    default: UserRole.CUSTOMER
+    type: 'enum',
+    enum: UserRole,
+    default: UserRole.CUSTOMER,
   })
   role: UserRole;
-  
-  @Column({
-    type: 'nvarchar', // MSSQL için string karşılığı
-    length: 'max',    // Veya istediğin bir uzunluk, örn: 500
-    nullable: true })
-  profileImage: string|null;
+
+  @Column('text', { nullable: true }) // nvarchar(max) yerine text
+  profileImage: string | null;
 
   @CreateDateColumn()
   createdAt: Date;
 
-
-  // İlişki: Kullanıcının sahibi olduğu ilanlar
-  @OneToMany(() => Listing, (listing) => listing.owner, { 
+  @OneToMany(() => Listing, (listing) => listing.owner, {
     cascade: true,
-    onDelete: 'CASCADE' 
+    onDelete: 'CASCADE',
   })
   listings: Listing[];
 
-  // İlişki: Emlakçı olarak atandığı ilanlar
   @OneToMany(() => Listing, (listing) => listing.agent)
   agentListings: Listing[];
-  
-  
 }
