@@ -10,7 +10,8 @@ async function bootstrap() {
       'http://localhost:5173', // Vite default port
       'http://localhost:5174', // Senin port'un
       'http://localhost:3001',
-      'https://vesta-real-estate.vercel.app', // Production
+      'https://vesta-real-estate-kt8p.vercel.app', // Production - Senin URL'in
+      'https://vesta-real-estate-kt8p-f6oz8v9d4-ayberks-projects-aaf4ebca.vercel.app', // Preview URL
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
