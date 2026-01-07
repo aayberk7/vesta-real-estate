@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 
 export default function Register({onSuccess}) {
   const [form, setForm] = useState({
@@ -63,37 +63,36 @@ export default function Register({onSuccess}) {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    // Validasyon kontrolü
-    const validationErrors = validateForm();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
+  // Validasyon kontrolü
+  const validationErrors = validateForm();
+  if (Object.keys(validationErrors).length > 0) {
+    setErrors(validationErrors);
+    return;
+  }
 
-    const data = new FormData();
-    data.append("username", form.username);
-    data.append("email", form.email);
-    data.append("password", form.password);
-    data.append("role", form.role);
-    if (photo) data.append("photo", photo);
+  const data = new FormData();
+  data.append("username", form.username);
+  data.append("email", form.email);
+  data.append("password", form.password);
+  data.append("role", form.role);
+  if (photo) data.append("photo", photo);
 
-    try {
-      // 👇 BACKTICK (`) kullan, tek tırnak değil!
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-      await axios.post(`${API_URL}/auth/register`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      alert("Kayıt başarılı 🎉");
-      onSuccess();
-    } catch (err) {
-      console.error("REGISTER ERROR:", err.response?.data || err);
-      alert("Kayıt başarısız: " + (err.response?.data?.message || "Bir hata oluştu"));
-    }
-  };
+  try {
+    // api kullan (axios.jsx'ten import edildi)
+    await api.post("/auth/register", data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    alert("Kayıt başarılı 🎉");
+    onSuccess();
+  } catch (err) {
+    console.error("REGISTER ERROR:", err.response?.data || err);
+    alert("Kayıt başarısız: " + (err.response?.data?.message || "Bir hata oluştu"));
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
