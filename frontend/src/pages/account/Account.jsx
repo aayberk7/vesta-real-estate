@@ -14,6 +14,7 @@ export default function MyAccount() {
 
   const [myListings, setMyListings] = useState([]);
   const [favorites, setFavorites] = useState([]);
+  const [commissions, setCommissions] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
@@ -26,6 +27,9 @@ export default function MyAccount() {
     if (user) {
       fetchMyListings();
       fetchFavorites();
+      if (user.role === "AGENT" || user.role === "agent") {
+      fetchCommissions(); 
+    }
     }
   }, [user]);
   
@@ -37,6 +41,16 @@ export default function MyAccount() {
       console.error("Favoriler yüklenemedi:", err);
     }
   };
+  const fetchCommissions = async () => {
+  try {
+    const response = await api.get("/listings/agent/my-commissions");
+    const soldCommissions = response.data.filter(c => c.status === "SOLD");
+    const totalEarned = soldCommissions.reduce((sum, c) => sum + Number(c.commission), 0);
+    setCommissions(totalEarned);
+  } catch (err) {
+    console.error("Komisyonlar yüklenemedi:", err);
+  }
+};
 
   const fetchMyListings = async () => {
     try {
@@ -141,8 +155,12 @@ export default function MyAccount() {
         <StatCard icon={<Home />} title="İlanlarım" value={myListings.length} />
         <StatCard icon={<Heart />} title="Favorilerim" value={favorites.length} />
         {(user.role === "agent" || user.role === "AGENT") && (
-          <StatCard icon={<Briefcase />} title="Komisyonlarım" value={0} />
-        )}
+  <StatCard 
+    icon={<Briefcase />} 
+    title="Kazanılan Komisyon" 
+    value={`${new Intl.NumberFormat("tr-TR").format(commissions)} ₺`} 
+  />
+)}
       </div>
 
       {/* KISISSEL BILGILER */}
