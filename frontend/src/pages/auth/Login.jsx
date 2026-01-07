@@ -10,32 +10,41 @@ export default function Login({onSuccess}) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const res = await loginApi({ email, password });
-
-    login(res.data.user, res.data.accessToken);
-    onSuccess();
-    alert("Giriş başarılı 🎉");
+    try {
+      const res = await loginApi({ email, password });
+      
+      login(res.data.user, res.data.accessToken);
+      alert("Giriş başarılı 🎉");
+      onSuccess();
+    } catch (err) {
+      console.error("Login error:", err);
+      alert("❌ Giriş başarısız! Email veya şifre hatalı.");
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div >
-        <h1 className="text-5xl md:text-4xl font-extrabold mb-6 ">HOŞGELDİNİZ</h1>
+      <div>
+        <h1 className="text-5xl md:text-4xl font-serif italic mb-6">
+          VESTA'YA HOŞGELDİNİZ
+        </h1>
       </div>
       <input
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="border p-2 w-full"
+        required
+        className="border p-2 w-full rounded"
       />
       <input
         type="password"
         placeholder="Şifre"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="border p-2 w-full"
+        required
+        className="border p-2 w-full rounded"
       />
-      <button className="bg-black text-white w-full py-2">
+      <button className="bg-black text-white w-full py-2 rounded hover:bg-gray-800 transition">
         Giriş Yap
       </button>
     </form>
