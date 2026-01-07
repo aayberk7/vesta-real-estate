@@ -1,20 +1,18 @@
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 
 export default function DeleteAccountModal({ isOpen, onClose }) {
-  const { token, logout } = useAuth(); // logout buraya eklendi
-  const navigate = useNavigate(); // navigate eklendi
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleDelete = async () => {
     try {
-      await axios.delete("${import.meta.env.VITE_API_URL}/users/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete("/users/me");
 
       alert("🗑️ Hesabınız silindi!");
-      logout(); // Önce çıkış yap
-      navigate("/"); // Sonra yönlendir
+      logout();
+      navigate("/");
     } catch (err) {
       alert("❌ Hesap silme başarısız: " + (err.response?.data?.message || "Hata oluştu"));
     }
@@ -31,13 +29,13 @@ export default function DeleteAccountModal({ isOpen, onClose }) {
         </p>
         <div className="flex gap-4">
           <button
-            onClick={onClose} // Sadece kapatma fonksiyonunu çağır
+            onClick={onClose}
             className="flex-1 px-4 py-3 rounded-xl bg-gray-600 hover:bg-gray-700 transition font-semibold"
           >
             İptal
           </button>
           <button
-            onClick={handleDelete} // Doğru fonksiyon ismi
+            onClick={handleDelete}
             className="flex-1 px-4 py-3 rounded-xl bg-red-600 hover:bg-red-700 transition font-semibold"
           >
             Evet, Sil

@@ -1,70 +1,43 @@
-import { Mail, ShieldCheck, Home, Heart, Briefcase, Trash2 } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
+import { User, Mail, Calendar, Shield, Heart, Home } from "lucide-react";
 import { useState, useEffect } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
-import EditProfileModal from "../auth/Edit";
-import ChangePasswordModal from "../auth/ChangePassword";
+import { useAuth } from "../../context/AuthContext";
+import api from "../../api/axios";
 
-import DeleteAccountModal from "../auth/Delete";
-
-
-export default function MyAccount() {
-  const { user, token, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const [myListings, setMyListings] = useState([]);
-  const [favorites, setFavorites] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function Account() {
+  const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
-  // Modal states
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  
+  const [stats, setStats] = useState({
+    favorites: 0,
+    listings: 0,
+  });
 
   useEffect(() => {
     if (user) {
-      fetchMyListings();
-      fetchFavorites();
+      fetchStats();
     }
   }, [user]);
-  
-  const fetchFavorites = async () => {
-  try {
-    const response = await axios.get(
-      "${import.meta.env.VITE_API_URL}/favorites",
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    setFavorites(response.data);
-  } catch (err) {
-    console.error("Favoriler yüklenemedi:", err);
-  }
-};
 
-  const fetchMyListings = async () => {
+  const fetchStats = async () => {
     try {
-      const response = await axios.get("${import.meta.env.VITE_API_URL}/listings/my/listings", {
-        headers: { Authorization: `Bearer ${token}` },
+      const favResponse = await api.get("/favorites");
+      const listingsResponse = await api.get("/listings/my/listings");
+      
+      setStats({
+        favorites: favResponse.data.length,
+        listings: listingsResponse.data.length,
       });
-      setMyListings(response.data);
-      setLoading(false);
     } catch (err) {
-      console.error("İlanlar yüklenemedi:", err);
-      setLoading(false);
+      console.error("İstatistikler yüklenemedi:", err);
     }
   };
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-900 ">
+      <div className="min-h-screen bg-slate-900">
         <section className="relative h-[90vh] flex items-center justify-center">
           <img
-            src="https://sirdas.com.tr/storage/projects/6.jpg"
+            src="https://sirdas.com.tr/storage/projects/9.jpg"
             alt="Home"
             className="absolute inset-0 w-full h-full object-cover"
           />
@@ -95,7 +68,7 @@ export default function MyAccount() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black text-white p-8">
+    <div className="min-h-screen bg-slate-900 text-white p-8">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       {!sidebarOpen && (
         <button
@@ -106,130 +79,116 @@ export default function MyAccount() {
         </button>
       )}
 
-      {/* HERO PROFIL */}
-      <div
-        className="relative rounded-3xl p-8 shadow-2xl overflow-hidden bg-cover bg-center"
-        style={{
-          backgroundImage: "url(https://images.unsplash.com/photo-1600585154340-be6161a56a0c)",
-        }}
-      >
-        <div className="absolute inset-0 bg-black/60" />
-        <div className="absolute top-0 right-0 opacity-10 text-[180px] font-bold z-0">
-          VESTA
-        </div>
+      <h1 className="text-3xl font-bold mb-8 ml-7 -mt-2">Hesabım</h1>
 
-        <div className="flex items-center gap-6 relative z-10">
-          <div className="w-24 h-24 rounded-full bg-black/40 flex items-center justify-center text-4xl font-bold overflow-hidden border-2 border-white/20">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Profil Kartı */}
+        <div className="bg-white/5 rounded-2xl p-8">
+          <div className="flex items-center gap-6 mb-6">
             {user.profileImage ? (
               <img
-                src={`${import.meta.env.VITE_API_URL}${user.profileImage}`}
-                alt={user.username}
-                className="w-full h-full object-cover"
+                src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${user.profileImage}`}
+                alt="Profil"
+                className="w-24 h-24 rounded-full object-cover border-4 border-indigo-500"
               />
             ) : (
-              user.username[0].toUpperCase()
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                <User size={48} />
+              </div>
             )}
+
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold">{user.username}</h2>
+              <p className="text-white/60 flex items-center gap-2 mt-1">
+                <Mail size={16} />
+                {user.email}
+              </p>
+            </div>
+
+            <div
+              className={`px-4 py-2 rounded-xl font-semibold ${
+                user.role === "AGENT"
+                  ? "bg-purple-500/20 text-purple-400"
+                  : "bg-blue-500/20 text-blue-400"
+              }`}
+            >
+              <Shield size={16} className="inline mr-2" />
+              {user.role === "AGENT" ? "Emlakçı" : "Müşteri"}
+            </div>
           </div>
 
-          <div>
-            <h1 className="text-3xl font-bold">{user.username}</h1>
-            <p className="text-white/80 flex items-center gap-2 mt-1">
-              <Mail size={16} /> {user.email}
-            </p>
-            <span className="inline-flex items-center gap-2 mt-3 px-4 py-1 rounded-full bg-black/40 text-sm">
-              <ShieldCheck size={16} />
-              {user.role}
-            </span>
+          <div className="flex items-center gap-2 text-white/60">
+            <Calendar size={16} />
+            Üyelik Tarihi: {new Date(user.createdAt).toLocaleDateString("tr-TR")}
           </div>
         </div>
-      </div>
 
-      {/* ISTATISTIKLER */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
-        <StatCard icon={<Home />} title="İlanlarım" value={myListings.length} />
-        <StatCard icon={<Heart />} title="Favorilerim" value={favorites.length} />
-        {(user.role === "agent" || user.role === "AGENT") && (
-          <StatCard icon={<Briefcase />} title="Komisyonlarım" value={0} />
-        )}
-      </div>
-
-      {/* KISISSEL BILGILER */}
-      <div className="mt-12 bg-white/5 rounded-2xl p-6 backdrop-blur-md">
-        <h2 className="text-xl font-semibold mb-4">Kişisel Bilgiler</h2>
-        <div className="grid md:grid-cols-2 gap-6 text-sm">
-          <InfoRow label="Ad Soyad" value={user.username} />
-          <InfoRow label="E-posta" value={user.email} />
-          <InfoRow label="Rol" value={user.role} />
-          <InfoRow label="Hesap Durumu" value="Aktif" />
-        </div>
-      </div>
-
-      {/* AYARLAR */}
-      <div className="mt-10 flex justify-between items-center">
-        <div className="flex gap-4">
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 transition font-semibold flex items-center gap-2"
-          >
-            <Trash2 size={18} />
-            Hesabımı Sil
-          </button>
-
-          <button
-            onClick={() => setShowPasswordModal(true)}
-            className="px-6 py-3 rounded-xl bg-orange-600 hover:bg-orange-700 transition font-semibold flex items-center gap-2"
-          >
-            🔒 Şifre Değiştir
-          </button>
+        {/* İstatistikler */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <StatCard
+            icon={<Heart />}
+            title="Favorilerim"
+            value={stats.favorites}
+            color="pink"
+            link="/favorites"
+          />
+          <StatCard
+            icon={<Home />}
+            title="İlanlarım"
+            value={stats.listings}
+            color="indigo"
+            link="/my-listings"
+          />
         </div>
 
-        <button
-          onClick={() => setShowEditModal(true)}
-          className="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 hover:scale-105 transition font-semibold"
-        >
-          Profili Düzenle
-        </button>
-      </div>
+        {/* Hesap İşlemleri */}
+        <div className="bg-white/5 rounded-2xl p-6">
+          <h3 className="text-xl font-semibold mb-4">Hesap İşlemleri</h3>
 
-      {/* MODALS */}
-      <EditProfileModal
-        isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        onSuccess={fetchMyListings}
-      />
+          <div className="space-y-3">
+            <button
+              onClick={() => (window.location.href = "/edit")}
+              className="w-full text-left px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 transition"
+            >
+              ✏️ Profil Bilgilerini Düzenle
+            </button>
 
-      <ChangePasswordModal
-        isOpen={showPasswordModal}
-        onClose={() => setShowPasswordModal(false)}
-      />
+            <button
+              onClick={() => (window.location.href = "/change-password")}
+              className="w-full text-left px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 transition"
+            >
+              🔒 Şifre Değiştir
+            </button>
 
-      <DeleteAccountModal
-        isOpen={showDeleteConfirm}
-        onClose={() =>setShowDeleteConfirm(false)}
-      />
-    </div>
-  );
-}
-
-/* --- KÜÇÜK BİLEŞENLER --- */
-
-function StatCard({ icon, title, value }) {
-  return (
-    <div className="bg-white/5 rounded-2xl p-6 flex items-center gap-4 backdrop-blur-md hover:bg-white/10 transition">
-      <div className="p-4 rounded-xl bg-indigo-500/20">{icon}</div>
-      <div>
-        <p className="text-sm text-white/70">{title}</p>
-        <p className="text-2xl font-bold">{value}</p>
+            <button
+              onClick={() => (window.location.href = "/delete")}
+              className="w-full text-left px-4 py-3 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 transition"
+            >
+              🗑️ Hesabı Sil
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function InfoRow({ label, value }) {
+function StatCard({ icon, title, value, color, link }) {
+  const colorClasses = {
+    pink: "from-pink-500 to-rose-500",
+    indigo: "from-indigo-500 to-purple-500",
+  };
+
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-white/60">{label}</span>
-      <span className="font-medium">{value}</span>
+    <div
+      onClick={() => (window.location.href = link)}
+      className="bg-white/5 rounded-2xl p-6 hover:bg-white/10 transition cursor-pointer"
+    >
+      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorClasses[color]} flex items-center justify-center mb-4`}>
+        {icon}
+      </div>
+      <h3 className="text-white/60 text-sm">{title}</h3>
+      <p className="text-3xl font-bold mt-1">{value}</p>
     </div>
   );
 }

@@ -1,27 +1,25 @@
-import { useAuth } from "../../context/AuthContext";
-import { Briefcase, Lock, TrendingUp, Clock } from "lucide-react";
+import { DollarSign, Home, TrendingUp } from "lucide-react";
 import { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar";
-import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
+import api from "../../api/axios";
 
 export default function Commissions() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, token } = useAuth();
-  const [commissions, setCommissions] = useState([]);
+  const { user } = useAuth();
+  const [myListings, setMyListings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (user && (user.role === "AGENT" || user.role === "agent")) {
-      fetchCommissions();
+    if (user && user.role === "AGENT") {
+      fetchMyCommissions();
     }
   }, [user]);
 
-  const fetchCommissions = async () => {
+  const fetchMyCommissions = async () => {
     try {
-      const response = await axios.get("${import.meta.env.VITE_API_URL}/listings/agent/my-commissions", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setCommissions(response.data);
+      const response = await api.get("/listings/agent/my-commissions");
+      setMyListings(response.data);
       setLoading(false);
     } catch (err) {
       console.error("Komisyonlar yüklenemedi:", err);
@@ -29,12 +27,20 @@ export default function Commissions() {
     }
   };
 
+  const totalCommission = myListings
+    .filter((l) => l.status === "SOLD" || l.status === "RENTED")
+    .reduce((sum, l) => sum + Number(l.commission), 0);
+
+  const pendingCommission = myListings
+    .filter((l) => l.status === "ACTIVE")
+    .reduce((sum, l) => sum + Number(l.commission), 0);
+
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-900 ">
+      <div className="min-h-screen bg-slate-900">
         <section className="relative h-[90vh] flex items-center justify-center">
           <img
-            src="https://sirdas.com.tr/storage/projects/1.jpg"
+            src="https://sirdas.com.tr/storage/projects/4.jpg"
             alt="Home"
             className="absolute inset-0 w-full h-full object-cover"
           />
@@ -50,10 +56,11 @@ export default function Commissions() {
             </button>
           )}
 
-          <p className="text-xl animate-pulse text-white">Henüz Giriş Yapmadınız.</p>
           <div className="absolute top-0 left-0 z-10 p-6 text-white">
             <h1 className="text-3xl font-bold mb-8 ml-9 -mt-0">Komisyonlarım</h1>
           </div>
+
+          <p className="text-xl animate-pulse text-white">Henüz Giriş Yapmadınız.</p>
 
           <div className="absolute top-0 right-0 z-10 p-6 text-white">
             <h2 className="text-5xl font-serif italic text-white">vesta</h2>
@@ -63,21 +70,21 @@ export default function Commissions() {
     );
   }
 
-  if (user.role !== "AGENT" && user.role !== "agent") {
+  if (user.role !== "AGENT") {
     return (
-      <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center">
-        <Lock size={50} className="mb-4" />
-        <h2 className="text-2xl font-semibold mb-2">Bu sayfaya erişiminiz yok</h2>
-        <p className="text-white/60">Komisyon bilgileri sadece emlakçılar için görüntülenebilir.</p>
-        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        {!sidebarOpen && (
+      <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold mb-4">⛔ Erişim Engellendi</h1>
+          <p className="text-white/60 mb-6">
+            Bu sayfayı sadece emlakçılar görüntüleyebilir.
+          </p>
           <button
-            onClick={() => setSidebarOpen(true)}
-            className="fixed top-6 left-6 z-50 text-white text-3xl"
+            onClick={() => (window.location.href = "/")}
+            className="px-6 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-600 transition"
           >
-            ☰
+            Ana Sayfaya Dön
           </button>
-        )}
+        </div>
       </div>
     );
   }
@@ -93,12 +100,6 @@ export default function Commissions() {
     );
   }
 
-  // İstatistikler hesapla
-  const activeCommissions = commissions.filter((c) => c.status === "ACTIVE");
-  const soldCommissions = commissions.filter((c) => c.status === "SOLD");
-  const totalPending = activeCommissions.reduce((sum, c) => sum + Number(c.commission), 0);
-  const totalEarned = soldCommissions.reduce((sum, c) => sum + Number(c.commission), 0);
-
   return (
     <div className="min-h-screen bg-slate-900 text-white p-8">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -113,137 +114,144 @@ export default function Commissions() {
 
       <h1 className="text-3xl font-bold mb-8 ml-7 -mt-2">Komisyonlarım</h1>
 
-      {/* İSTATİSTİKLER */}
-      <div className="grid md:grid-cols-3 gap-6 mb-10">
+      {/* İstatistik Kartları */}
+      <div className="grid md:grid-cols-3 gap-6 mb-8">
         <StatCard
-          icon={<Briefcase />}
-          title="Toplam İlan"
-          value={commissions.length}
-          color="indigo"
-        />
-        <StatCard
-          icon={<Clock />}
-          title="Bekleyen Komisyon"
-          value={`${new Intl.NumberFormat("tr-TR").format(totalPending)} ₺`}
-          color="yellow"
+          icon={<DollarSign />}
+          title="Kazanılan Komisyon"
+          value={`${new Intl.NumberFormat("tr-TR").format(totalCommission)} ₺`}
+          color="green"
         />
         <StatCard
           icon={<TrendingUp />}
-          title="Kazanılan Komisyon"
-          value={`${new Intl.NumberFormat("tr-TR").format(totalEarned)} ₺`}
-          color="green"
+          title="Bekleyen Komisyon"
+          value={`${new Intl.NumberFormat("tr-TR").format(pendingCommission)} ₺`}
+          color="yellow"
+        />
+        <StatCard
+          icon={<Home />}
+          title="Toplam İlan"
+          value={myListings.length}
+          color="blue"
         />
       </div>
 
-      {commissions.length === 0 ? (
+      {/* İlan Listesi */}
+      {myListings.length === 0 ? (
         <EmptyState />
       ) : (
-        <CommissionTable data={commissions} />
+        <CommissionsGrid listings={myListings} />
       )}
     </div>
   );
 }
 
-/* ---------------- STAT CARD ---------------- */
-
 function StatCard({ icon, title, value, color }) {
   const colorClasses = {
-    indigo: "bg-indigo-500/20 text-indigo-400",
-    yellow: "bg-yellow-500/20 text-yellow-400",
-    green: "bg-green-500/20 text-green-400",
+    green: "from-green-500 to-emerald-500",
+    yellow: "from-yellow-500 to-orange-500",
+    blue: "from-blue-500 to-indigo-500",
   };
 
   return (
-    <div className="bg-white/5 rounded-2xl p-6 flex items-center gap-4 backdrop-blur-md hover:bg-white/10 transition">
-      <div className={`p-4 rounded-xl ${colorClasses[color]}`}>{icon}</div>
-      <div>
-        <p className="text-sm text-white/70">{title}</p>
-        <p className="text-2xl font-bold">{value}</p>
+    <div className="bg-white/5 rounded-2xl p-6">
+      <div
+        className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorClasses[color]} flex items-center justify-center mb-4`}
+      >
+        {icon}
       </div>
+      <h3 className="text-white/60 text-sm">{title}</h3>
+      <p className="text-3xl font-bold mt-1">{value}</p>
     </div>
   );
 }
 
-/* ---------------- EMPTY STATE ---------------- */
-
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center text-center mt-24">
-      <Briefcase size={50} className="mb-4 text-indigo-400" />
-      <h2 className="text-2xl font-semibold mb-2">Henüz size atanmış ilan yok</h2>
-      <p className="text-white/60">
-        Müşteriler ilan oluştururken sizi emlakçı olarak seçtiğinde burada görünecek.
+      <div className="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center mb-6">
+        <DollarSign size={40} />
+      </div>
+
+      <h2 className="text-2xl font-semibold mb-2">Henüz komisyon yok</h2>
+
+      <p className="text-white/60 max-w-md">
+        Size atanmış ilanlar burada listelenecek. İlanlar satılınca komisyon
+        kazanacaksınız.
       </p>
     </div>
   );
 }
 
-/* ---------------- TABLE ---------------- */
-
-function CommissionTable({ data }) {
+function CommissionsGrid({ listings }) {
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  
   return (
-    <div className="bg-white/5 rounded-2xl overflow-hidden">
-      <table className="w-full text-sm">
-        <thead className="bg-white/10">
-          <tr>
-            <th className="p-4 text-left">İlan</th>
-            <th className="p-4 text-left">İlan Sahibi</th>
-            <th className="p-4 text-left">Fiyat</th>
-            <th className="p-4 text-left">Komisyon (%3)</th>
-            <th className="p-4 text-left">Durum</th>
-            <th className="p-4 text-left">Tarih</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((c) => (
-            <tr key={c.id} className="border-t border-white/10 hover:bg-white/5 transition">
-              <td className="p-4 font-semibold">{c.title}</td>
-              <td className="p-4">{c.owner?.username}</td>
-              <td className="p-4">{new Intl.NumberFormat("tr-TR").format(c.price)} ₺</td>
-              <td className="p-4 font-semibold text-green-400">
-                {new Intl.NumberFormat("tr-TR").format(c.commission)} ₺
-              </td>
-              <td className="p-4">
-                {c.status === "ACTIVE" && (
-                  <span className="px-3 py-1 rounded-full text-xs bg-yellow-500/20 text-yellow-400">
-                    💤 Bekleniyor
-                  </span>
-                )}
-                {c.status === "SOLD" && (
-                  <span className="px-3 py-1 rounded-full text-xs bg-green-500/20 text-green-400">
-                    ✅ Kazanıldı
-                  </span>
-                )}
-                {c.status === "RENTED" && (
-                  <span className="px-3 py-1 rounded-full text-xs bg-blue-500/20 text-blue-400">
-                    🏠 Kiralandı
-                  </span>
-                )}
-              </td>
-              <td className="p-4 text-white/60">
-                {new Date(c.createdAt).toLocaleDateString("tr-TR")}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {listings.map((item) => (
+        <div
+          key={item.id}
+          className="bg-white/5 rounded-2xl overflow-hidden hover:bg-white/10 transition"
+        >
+          {item.image ? (
+            <img
+              src={`${API_URL}${item.image}`}
+              alt={item.title}
+              className="h-48 w-full object-cover"
+            />
+          ) : (
+            <div className="h-48 w-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+              <Home size={48} className="text-white/40" />
+            </div>
+          )}
 
-      {/* TOPLAM */}
-      <div className="bg-white/10 p-4 flex justify-between items-center font-semibold">
-        <span>TOPLAM</span>
-        <div className="flex gap-6">
-          <span className="text-yellow-400">
-            Bekleyen: {new Intl.NumberFormat("tr-TR").format(
-              data.filter((c) => c.status === "ACTIVE").reduce((sum, c) => sum + Number(c.commission), 0)
-            )} ₺
-          </span>
-          <span className="text-green-400">
-            Kazanılan: {new Intl.NumberFormat("tr-TR").format(
-              data.filter((c) => c.status === "SOLD").reduce((sum, c) => sum + Number(c.commission), 0)
-            )} ₺
-          </span>
+          <div className="p-4">
+            <h3 className="font-semibold text-lg">{item.title}</h3>
+            <p className="text-white/60 text-sm">{item.district?.name}</p>
+
+            <div className="mt-3 space-y-2">
+              <div className="flex justify-between">
+                <span className="text-white/60 text-sm">Fiyat:</span>
+                <span className="font-semibold">
+                  {new Intl.NumberFormat("tr-TR").format(item.price)} ₺
+                </span>
+              </div>
+
+              <div className="flex justify-between">
+                <span className="text-white/60 text-sm">Komisyon:</span>
+                <span className="font-bold text-green-400">
+                  {new Intl.NumberFormat("tr-TR").format(item.commission)} ₺
+                </span>
+              </div>
+
+              <div className="flex justify-between">
+                <span className="text-white/60 text-sm">Durum:</span>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs ${
+                    item.status === "SOLD"
+                      ? "bg-green-500/20 text-green-400"
+                      : item.status === "RENTED"
+                      ? "bg-yellow-500/20 text-yellow-400"
+                      : "bg-blue-500/20 text-blue-400"
+                  }`}
+                >
+                  {item.status === "SOLD"
+                    ? "✅ Satıldı"
+                    : item.status === "RENTED"
+                    ? "🟡 Kiralandı"
+                    : "🔵 Aktif"}
+                </span>
+              </div>
+            </div>
+
+            {item.status === "ACTIVE" && (
+              <p className="text-white/40 text-xs mt-3">
+                💡 İlan satılınca komisyonu kazanacaksınız
+              </p>
+            )}
+          </div>
         </div>
-      </div>
+      ))}
     </div>
   );
 }
