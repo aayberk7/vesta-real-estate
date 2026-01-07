@@ -51,7 +51,7 @@ async changePassword(@Req() req, @Body() body: { oldPassword: string; newPasswor
 
 // Tüm emlakçıları listele
 @Get('agents')
-getAgents() {
-  return this.usersService.getAgents();
+async getAgents() {
+  return this.usersService.findByRole('AGENT');
 }
 }

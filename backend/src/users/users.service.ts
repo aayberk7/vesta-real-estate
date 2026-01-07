@@ -68,13 +68,12 @@ export class UsersService {
 }
 
 // Tüm emlakçıları getir
-async getAgents() {
+findByRole(role: string) {
   return this.userRepository.find({
-    where: { role:  UserRole.AGENT},
-    select: ['id', 'username', 'email', 'profileImage'],
+    where: { role:UserRole.AGENT },
+    select: ['id', 'username', 'email' , 'profileImage'],
   });
 }
-
 // Emlakçının kaç ilanı var?
 async getAgentListingCount(agentId: number): Promise<number> {
   const agent = await this.userRepository.findOne({
