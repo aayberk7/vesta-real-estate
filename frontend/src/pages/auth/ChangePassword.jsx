@@ -1,9 +1,7 @@
 import { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
 import api from "../../api/axios";
 
-export default function ChangePassword() {
-  const { user, logout } = useAuth();
+export default function ChangePasswordModal({ isOpen, onClose }) {
   const [form, setForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -48,12 +46,13 @@ export default function ChangePassword() {
 
     try {
       await api.put("/users/change-password", {
-        oldPassword: form.oldPassword,
+        currentPassword: form.currentPassword,
         newPassword: form.newPassword,
       });
 
       alert("✅ Şifre başarıyla değiştirildi!");
-      setForm({ oldPassword: "", newPassword: "", confirmNewPassword: "" });
+      setForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setErrors({});
       onClose();
     } catch (err) {
       alert(
@@ -63,26 +62,18 @@ export default function ChangePassword() {
     }
   };
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Giriş Yapmanız Gerekiyor</h1>
-          <button
-            onClick={() => (window.location.href = "/login")}
-            className="px-6 py-3 rounded-xl bg-blue-600 text-white"
-          >
-            Giriş Yap
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const handleCancel = () => {
+    setForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    setErrors({});
+    onClose();
+  };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-white w-full max-w-md p-8 rounded-2xl shadow-xl">
-        <h2 className="text-2xl font-bold mb-6 text-center">Şifre Değiştir</h2>
+      <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full shadow-2xl">
+        <h3 className="text-2xl font-bold mb-6 text-orange-500">🔒 Şifre Değiştir</h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -93,14 +84,14 @@ export default function ChangePassword() {
               onChange={(e) =>
                 setForm({ ...form, currentPassword: e.target.value })
               }
-              className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 ${
+              className={`w-full px-4 py-3 rounded-xl bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 ${
                 errors.currentPassword
                   ? "border-red-500 focus:ring-red-500"
-                  : "focus:ring-blue-500"
+                  : "focus:ring-orange-500"
               }`}
             />
             {errors.currentPassword && (
-              <p className="text-red-500 text-sm mt-1">
+              <p className="text-red-400 text-sm mt-1">
                 ⚠️ {errors.currentPassword}
               </p>
             )}
@@ -112,14 +103,14 @@ export default function ChangePassword() {
               placeholder="Yeni Şifre (min 6 karakter, 1 büyük harf, 1 rakam)"
               value={form.newPassword}
               onChange={(e) => setForm({ ...form, newPassword: e.target.value })}
-              className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 ${
+              className={`w-full px-4 py-3 rounded-xl bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 ${
                 errors.newPassword
                   ? "border-red-500 focus:ring-red-500"
-                  : "focus:ring-blue-500"
+                  : "focus:ring-orange-500"
               }`}
             />
             {errors.newPassword && (
-              <p className="text-red-500 text-sm mt-1">
+              <p className="text-red-400 text-sm mt-1">
                 ⚠️ {errors.newPassword}
               </p>
             )}
@@ -133,30 +124,30 @@ export default function ChangePassword() {
               onChange={(e) =>
                 setForm({ ...form, confirmPassword: e.target.value })
               }
-              className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 ${
+              className={`w-full px-4 py-3 rounded-xl bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 ${
                 errors.confirmPassword
                   ? "border-red-500 focus:ring-red-500"
-                  : "focus:ring-blue-500"
+                  : "focus:ring-orange-500"
               }`}
             />
             {errors.confirmPassword && (
-              <p className="text-red-500 text-sm mt-1">
+              <p className="text-red-400 text-sm mt-1">
                 ⚠️ {errors.confirmPassword}
               </p>
             )}
           </div>
 
-          <div className="flex gap-4">
+          <div className="flex gap-4 mt-6">
             <button
               type="button"
-              onClick={() => (window.location.href = "/account")}
-              className="flex-1 px-4 py-3 rounded-xl bg-gray-300 hover:bg-gray-400 transition"
+              onClick={handleCancel}
+              className="flex-1 px-4 py-3 rounded-xl bg-gray-600 hover:bg-gray-700 transition font-semibold"
             >
               İptal
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition"
+              className="flex-1 px-4 py-3 rounded-xl bg-orange-600 hover:bg-orange-700 transition font-semibold"
             >
               Değiştir
             </button>
