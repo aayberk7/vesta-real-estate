@@ -1,17 +1,15 @@
 import { Mail, ShieldCheck, Home, Heart, Briefcase, Trash2 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import EditProfileModal from "../auth/Edit";
 import ChangePasswordModal from "../auth/ChangePassword";
-
 import DeleteAccountModal from "../auth/Delete";
 
-
 export default function MyAccount() {
-  const { user, token, logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const [myListings, setMyListings] = useState([]);
@@ -23,7 +21,6 @@ export default function MyAccount() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  
 
   useEffect(() => {
     if (user) {
@@ -33,24 +30,17 @@ export default function MyAccount() {
   }, [user]);
   
   const fetchFavorites = async () => {
-  try {
-    const response = await axios.get(
-      "${import.meta.env.VITE_API_URL}/favorites",
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    setFavorites(response.data);
-  } catch (err) {
-    console.error("Favoriler yüklenemedi:", err);
-  }
-};
+    try {
+      const response = await api.get("/favorites");
+      setFavorites(response.data);
+    } catch (err) {
+      console.error("Favoriler yüklenemedi:", err);
+    }
+  };
 
   const fetchMyListings = async () => {
     try {
-      const response = await axios.get("${import.meta.env.VITE_API_URL}/listings/my/listings", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get("/listings/my/listings");
       setMyListings(response.data);
       setLoading(false);
     } catch (err) {
@@ -61,7 +51,7 @@ export default function MyAccount() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-900 ">
+      <div className="min-h-screen bg-slate-900">
         <section className="relative h-[90vh] flex items-center justify-center">
           <img
             src="https://sirdas.com.tr/storage/projects/6.jpg"
@@ -94,6 +84,8 @@ export default function MyAccount() {
     );
   }
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black text-white p-8">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -122,7 +114,7 @@ export default function MyAccount() {
           <div className="w-24 h-24 rounded-full bg-black/40 flex items-center justify-center text-4xl font-bold overflow-hidden border-2 border-white/20">
             {user.profileImage ? (
               <img
-                src={`${import.meta.env.VITE_API_URL}${user.profileImage}`}
+                src={`${API_URL}${user.profileImage}`}
                 alt={user.username}
                 className="w-full h-full object-cover"
               />
@@ -205,7 +197,7 @@ export default function MyAccount() {
 
       <DeleteAccountModal
         isOpen={showDeleteConfirm}
-        onClose={() =>setShowDeleteConfirm(false)}
+        onClose={() => setShowDeleteConfirm(false)}
       />
     </div>
   );
