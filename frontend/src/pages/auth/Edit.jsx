@@ -1,9 +1,9 @@
 import { useState, useRef } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 
 export default function Edit({ isOpen, onClose, onSuccess }) {
-  const { user, token, updateUser } = useAuth();
+  const { user, updateUser } = useAuth();
   const fileInputRef = useRef(null);
 
   const [form, setForm] = useState({
@@ -34,16 +34,11 @@ export default function Edit({ isOpen, onClose, onSuccess }) {
       data.append("email", form.email);
       if (photo) data.append("photo", photo);
 
-      const response = await axios.put(
-        "${import.meta.env.VITE_API_URL}/users/me",
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await api.put("/users/me", data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       updateUser(response.data);
       alert("✅ Profil güncellendi!");
@@ -52,7 +47,7 @@ export default function Edit({ isOpen, onClose, onSuccess }) {
       onSuccess();
       onClose();
     } catch (err) {
-      alert("❌ Güncelleme başarısız");
+      alert("❌ Güncelleme başarısız: " + (err.response?.data?.message || ""));
     }
   };
 
@@ -68,6 +63,8 @@ export default function Edit({ isOpen, onClose, onSuccess }) {
 
   if (!isOpen) return null;
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
       <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full shadow-2xl">
@@ -75,16 +72,13 @@ export default function Edit({ isOpen, onClose, onSuccess }) {
           ✏️ Profili Düzenle
         </h3>
 
-        
-
-
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* FOTOĞRAF ÖNİZLEME */}
           <div className="flex flex-col items-center mb-4">
             <div className="relative w-24 h-24 rounded-full overflow-hidden bg-black/40 border-2 border-white/20 mb-3">
               {preview || user?.profileImage ? (
                 <img
-                  src={preview || `${import.meta.env.VITE_API_URL}${user.profileImage}`}
+                  src={preview || `${API_URL}${user.profileImage}`}
                   alt={user?.username}
                   className="w-full h-full object-cover"
                 />
