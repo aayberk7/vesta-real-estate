@@ -2,10 +2,10 @@ import { Home, PlusCircle, Edit2, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar";
 import { useAuth } from "../../context/AuthContext";
-import axios from "axios";
+import api from "../../api/axios"; // 👈 api kullan
 
 export default function MyListings() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const [myListings, setMyListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -40,9 +40,7 @@ export default function MyListings() {
 
   const fetchMyListings = async () => {
     try {
-      const response = await axios.get("${import.meta.env.VITE_API_URL}/listings/my/listings", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get("/listings/my/listings");
       setMyListings(response.data);
       setLoading(false);
     } catch (err) {
@@ -53,7 +51,7 @@ export default function MyListings() {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get("${import.meta.env.VITE_API_URL}/categories");
+      const response = await api.get("/categories");
       setCategories(response.data);
     } catch (err) {
       console.error("Kategoriler yüklenemedi:", err);
@@ -62,7 +60,7 @@ export default function MyListings() {
 
   const fetchDistricts = async () => {
     try {
-      const response = await axios.get("${import.meta.env.VITE_API_URL}/districts");
+      const response = await api.get("/districts");
       setDistricts(response.data);
     } catch (err) {
       console.error("İlçeler yüklenemedi:", err);
@@ -71,11 +69,11 @@ export default function MyListings() {
 
   const fetchAgents = async () => {
     try {
-      const response = await axios.get("${import.meta.env.VITE_API_URL}/users/agents");
+      const response = await api.get("/users/agents");
       setAgents(response.data);
 
       // Her emlakçının kaç ilanı olduğunu hesapla
-      const allListings = await axios.get("${import.meta.env.VITE_API_URL}/listings");
+      const allListings = await api.get("/listings");
       const counts = {};
       allListings.data.forEach((listing) => {
         if (listing.agentId) {
@@ -95,13 +93,11 @@ export default function MyListings() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validasyon
     if (!form.title || !form.description || !form.price || !form.address || !form.categoryId || !form.districtId) {
       alert("⚠️ Lütfen tüm alanları doldurun");
       return;
     }
 
-    // Emlakçı limiti kontrolü
     if (form.agentId) {
       const count = agentListingCounts[form.agentId] || 0;
       if (count >= 5 && !editingListing) {
@@ -123,17 +119,15 @@ export default function MyListings() {
 
     try {
       if (editingListing) {
-        await axios.put(`${import.meta.env.VITE_API_URL}/listings/${editingListing.id}`, data, {
+        await api.put(`/listings/${editingListing.id}`, data, {
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
         });
         alert("✅ İlan güncellendi!");
       } else {
-        await axios.post("${import.meta.env.VITE_API_URL}/listings", data, {
+        await api.post("/listings", data, {
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
         });
@@ -144,7 +138,7 @@ export default function MyListings() {
       setEditingListing(null);
       resetForm();
       fetchMyListings();
-      fetchAgents(); // Emlakçı sayılarını güncelle
+      fetchAgents();
     } catch (err) {
       alert("❌ İşlem başarısız: " + (err.response?.data?.message || ""));
     }
@@ -169,12 +163,10 @@ export default function MyListings() {
     if (!confirm("Bu ilanı silmek istediğinize emin misiniz?")) return;
 
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/listings/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`/listings/${id}`);
       alert("🗑️ İlan silindi!");
       fetchMyListings();
-      fetchAgents(); // Emlakçı sayılarını güncelle
+      fetchAgents();
     } catch (err) {
       alert("❌ Silme başarısız");
     }
@@ -196,7 +188,7 @@ export default function MyListings() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-900 ">
+      <div className="min-h-screen bg-slate-900">
         <section className="relative h-[90vh] flex items-center justify-center">
           <img
             src="https://sirdas.com.tr/storage/projects/2.jpg"
@@ -274,7 +266,6 @@ export default function MyListings() {
         <ListingsGrid listings={myListings} onEdit={handleEdit} onDelete={handleDelete} />
       )}
 
-      {/* MODAL */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-slate-800 rounded-2xl p-8 max-w-2xl w-full shadow-2xl my-8">
@@ -307,7 +298,6 @@ export default function MyListings() {
                 className="w-full px-4 py-3 rounded-xl bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
 
-              {/* KOMİSYON GÖSTERGE */}
               {form.price && form.agentId && (
                 <div className="bg-green-500/20 border border-green-500/50 rounded-xl p-4">
                   <p className="text-green-400 font-semibold">
@@ -353,7 +343,6 @@ export default function MyListings() {
                 ))}
               </select>
 
-              {/* EMLAKÇI SEÇİMİ */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Emlakçı Seçin (İsteğe Bağlı)
@@ -428,8 +417,6 @@ export default function MyListings() {
   );
 }
 
-/* ---------------- EMPTY STATE ---------------- */
-
 function EmptyState({ onCreateClick }) {
   return (
     <div className="flex flex-col items-center justify-center text-center mt-24">
@@ -453,9 +440,9 @@ function EmptyState({ onCreateClick }) {
   );
 }
 
-/* ---------------- GRID ---------------- */
-
 function ListingsGrid({ listings, onEdit, onDelete }) {
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
       {listings.map((item) => (
@@ -465,7 +452,7 @@ function ListingsGrid({ listings, onEdit, onDelete }) {
         >
           {item.image ? (
             <img
-              src={`${import.meta.env.VITE_API_URL}${item.image}`}
+              src={`${API_URL}${item.image}`}
               alt={item.title}
               className="h-48 w-full object-cover"
             />
